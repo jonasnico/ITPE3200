@@ -1,4 +1,5 @@
-﻿using KundeApp.Models;
+﻿using KundeApp.DAL;
+using KundeApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,136 +12,36 @@ namespace KundeApp.Controllers
     [Route("[controller]/[action]")]
     public class KundeController : ControllerBase
     {
-        private readonly KundeContext _db;
+        private readonly IKundeRepository _db;
 
-        public KundeController(KundeContext kundeDB)
+        public KundeController(IKundeRepository db)
         {
-            _db = kundeDB;
+            _db = db;
         }
 
         public async Task<bool> Lagre(Kunde innKunde)
         {
-            try
-            {
-                var nyKundeRad = new Kunder();
-                nyKundeRad.Fornavn = innKunde.Fornavn;
-                nyKundeRad.Etternavn = innKunde.Etternavn;
-                nyKundeRad.Adresse = innKunde.Adresse;
-
-                var sjekkPoststed = _db.Poststeder.Find(innKunde.Postnr);
-                if(sjekkPoststed == null)
-                {
-                    var nyPoststedRad = new Poststeder();
-                    nyPoststedRad.Postnr = innKunde.Postnr;
-                    nyPoststedRad.Poststed = innKunde.Poststed;
-                    nyKundeRad.Poststed = nyPoststedRad;
-                }
-                else
-                {
-                    nyKundeRad.Poststed = sjekkPoststed;
-                }
-                _db.Kunder.Add(nyKundeRad);
-                await _db.SaveChangesAsync();
-                return true;
-
-            }
-            catch
-            {
-                return false;
-            }  
+            return await _db.Lagre(innKunde);
         }
+
         public async Task<List<Kunde>> HentAlle()
         {
-            try
-            {
-                List<Kunde> alleKunder = await _db.Kunder.Select(k => new Kunde
-                {
-                    Id = k.Id,
-                    Fornavn = k.Fornavn,
-                    Etternavn = k.Etternavn,
-                    Adresse = k.Adresse,
-                    Postnr = k.Poststed.Postnr,
-                    Poststed = k.Poststed.Poststed
-                }).ToListAsync();
-                
-                return alleKunder;
-            }
-            catch
-            {
-                return null;
-            }
+            return await _db.HentAlle();
         }
 
-        public async Task<bool> Slett(int Id)
+        public async Task<bool> Slett(int id)
         {
-            try
-            {
-                Kunder enKunde = await _db.Kunder.FindAsync(Id);
-                _db.Kunder.Remove(enKunde);
-                await _db.SaveChangesAsync();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return await _db.Slett(id);
         }
 
-        public async Task<Kunde> HentEn(int Id)
+        public async Task<Kunde> HentEn(int id)
         {
-            try
-            {
-                Kunder enKunde = await _db.Kunder.FindAsync(Id);
-                var hentetKunde = new Kunde()
-                {
-                    Id = enKunde.Id,
-                    Fornavn = enKunde.Fornavn,
-                    Etternavn = enKunde.Etternavn,
-                    Adresse = enKunde.Adresse,
-                    Postnr = enKunde.Poststed.Postnr,
-                    Poststed = enKunde.Poststed.Poststed
-                };
-                return hentetKunde;
-            }
-            catch
-            {
-                return null;
-            }
+            return await _db.HentEn(id);
         }
 
         public async Task<bool> Endre(Kunde endreKunde)
         {
-            try
-            {
-                Kunder enKunde = await _db.Kunder.FindAsync(endreKunde.Id);
-
-                if(enKunde.Poststed.Postnr != endreKunde.Postnr)
-                {
-                    var sjekkPoststed = _db.Poststeder.Find(endreKunde.Postnr);
-                    if (sjekkPoststed == null)
-                    {
-                        var nyPoststedRad = new Poststeder
-                        {
-                            Postnr = endreKunde.Postnr,
-                            Poststed = endreKunde.Poststed
-                        };
-                        enKunde.Poststed = nyPoststedRad;
-                    }
-                    else
-                    {
-                        enKunde.Poststed = sjekkPoststed;
-                    }
-                }
-                enKunde.Fornavn = endreKunde.Fornavn;
-                enKunde.Etternavn = endreKunde.Fornavn;
-                enKunde.Adresse = endreKunde.Adresse;
-                await _db.SaveChangesAsync();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return await _db.Endre(endreKunde);
         }
     }
 }

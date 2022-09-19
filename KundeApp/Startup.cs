@@ -1,3 +1,4 @@
+using KundeApp.DAL;
 using KundeApp.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,6 +27,7 @@ namespace KundeApp
         {
             services.AddControllers();
             services.AddDbContext<KundeContext>(options => options.UseSqlite("Data source=Kunde.db"));
+            services.AddScoped<IKundeRepository, KundeRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
